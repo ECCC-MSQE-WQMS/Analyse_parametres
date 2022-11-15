@@ -1,0 +1,168 @@
+---
+title: "Importation et consolidation des données de l'IQE"
+author: "Martin Jean & Annie Picard"
+date: "2021-01-17"
+output:
+  html_notebook: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup}
+knitr::opts_chunk$set(include = FALSE)
+# include=FALSE
+# knitr::opts_chunk$set(echo = TRUE)
+
+options(scipen = 999)
+
+# Load the required packages
+library(tidyverse)
+# library(xlsx)
+# library(here)
+# if(!require(rstudioapi)){install.packages("rstudioapi")}
+# library(rstudioapi)
+if(!require(lubridate)){install.packages("lubridate")}
+library(lubridate)
+# if(!require(dbplyr)){install.packages("dbplyr")}
+# library(dbplyr)
+# if(!require(odbc)){install.packages("odbc")}
+# library(odbc)
+# if(!require(DBI)){install.packages("DBI")}
+# library(DBI)
+# if(!require(rstudioapi)){install.packages("rstudioapi")}
+library(readxl)
+```
+
+## Objectif du script
+
+L'objectif du script est d'importer et de consolider les données provenant de différents fichiers de données IQE. Plus précisément, le script permet:
+
+- lire les fichiers Excel présents dans le dossier "donnees"; ces fichiers sont les sorties du calculateur IQE; le premier onglet sera importer dans un tableau de données R;
+- Ajouter colonne *année* aux données récentes
+- Sélectionner les colonnes pertinentes (stations, date, année, paramètre)
+- Ajouter les colonnes *saison*, *partenaire*, et *bassin*
+- Enregistrer les données (CSV et RDS)
+- consolider les données en un seul tableau de données
+- Exporter le tableau de données consolidé pour usage ultérieur
+
+
+## Sources des données
+
+Les données utilisées sont extraites directement des sorties du Calculateur. Nous utiliserons l'onglet "Data" de ces fichiers. Les fichiers d'origine, copiés dans "donnees/Sorties_calculateurs", proviennent du dossier dans "\\\\int.ec.gc.ca\\shares\\m\\MSQE_QC\\CESI", dans un dossier identifié à la période-index.
+
+Une table dictionnaire a été créée à partir du fichier des résultats pour la période-index de 2017-2019, afin d'obtenir les informations générales sur les stations.
+
+## Remarque importante
+
+Comme les données ne sont disponibles que sur le réseau interne d'ECCC, l'utilisation du VPN sur un ordinateur autorisé est requise. Une fois les données importées, les autres codes peuvent être exécutés sur d'autres ordinateurs.
+
+## Lecture des données
+
+```{r}
+# Importation de la table dictionnaire
+table_dictionnaire <- read.csv2("donnees/Dictionnaire_bassin.csv")
+
+
+```
+
+```{r include=FALSE}
+
+### Importer et nettoyer les données récentes (2018-2020) par l'ensemble des partenaires.
+
+# Créer la liste des fichiers xls du dossier de données
+liste_fichiers_sortie <- list.files("donnees/", pattern = ".xls", full.names = TRUE, recursive = TRUE, include.dirs = FALSE)
+
+# Importer les fichiers xls du dossier de données
+liste_tableaux_sortie <- lapply(liste_fichiers_sortie, function(x) readxl::read_xls(x, sheet = 1))
+
+# Ne conserver que les deux premières colonnes
+# recent_liste_nettoye <- map(recent_liste, ~ select(., -INDEXPERIOD, -TEMP, -PH, -HARDNESS))
+
+# Transformation en format long
+liste_tableaux_sortie_long <- map(liste_tableaux_sortie, ~ pivot_longer(., cols = -c(Station, Date, INDEXPERIOD, TEMP, PH), names_to = "Parametre", values_to = "Valeur", values_drop_na = TRUE))
+
+# Si une erreur survient à cette étape, il est probable que les entêtes des fichiers Excel sont différents
+tableau_sortie_long <- do.call("rbind", liste_tableaux_sortie_long)
+tableau_sortie_long$Date <- as.Date(tableau_sortie_long$Date)
+
+tableau_parametres_long <- tableau_sortie_long %>%
+  mutate(Annee = year(Date), Cle = paste(Station, Date, sep = "_")) %>%
+  # unique() %>%
+  mutate(
+    Mois = month(Date),
+    Jour = day(Date)
+  ) %>%
+  select(-INDEXPERIOD, -TEMP, -PH) %>%
+  filter(Parametre!="HARDNESS")
+
+# Ajout des variables de la table dictionnaire
+tableau_parametres_ok <- tableau_parametres_long %>% 
+  left_join(table_dictionnaire, by = "Station") %>% 
+  select(-Core) # supprimer colonne superflue
+
+# Ajout de la saison
+tableau_parametres_ok$Saison <- case_when( 
+    tableau_parametres_ok$Mois %in% c(6,7,8) ~ "Summer",
+    tableau_parametres_ok$Mois %in% c(9,10,11) ~ "Fall",
+    tableau_parametres_ok$Mois %in% c(1,2,12) ~ "Winter",
+    tableau_parametres_ok$Mois %in% c(3,4,5) ~ "Spring"
+)
+
+
+write.csv2(tableau_parametres_ok, "resultats/Tableau_parametres_long.csv", row.names = FALSE, fileEncoding = "UTF-8")
+saveRDS(tableau_parametres_long, "resultats/Tableau_parametres_long.RDS")
+
+```
+
+## Lecture des données - Compilation saisonnière
+
+### Importation des données saisonnières récentes
+
+```{r}
+### Importer et nettoyer les données récentes (2018-2020) par l'ensemble des partenaires.
+#recent.long <- read.csv(here("donnees/recent/AB_2018-2020/WQI_AB_2022_Results.csv"), sep=";", dec=".") %>%
+  # mutate(Date = as.Date(parse_date_time(Date, orders = c("ymd", "dmy", "ymd HMS", "dmy HMS")))) %>% 
+  # select(Station, Date, Year)
+
+# Créer la liste des fichiers xls du dossier de données
+file_list <- list.files("donnees/sorties_calculateur/", pattern = ".xls")
+
+# Importer les fichiers xls du dossier de données
+recent_liste <- lapply(file_list, function(x) readxl::read_xls(paste("donnees/Sorties_calculateur/",x, sep = ""), sheet = 1))
+
+# Ne conserver que les deux premières colonnes
+recent_liste_long <- map(recent_liste, ~ select(., Station, Date))
+
+# Si une erreur survient à cette étape, il est probable que les entêtes des fichiers Excel sont différents
+recent_combine <- do.call("rbind", recent_liste_long)
+
+recent_long <- recent_combine %>% 
+    mutate(Annee = year(Date), Cle = paste(Station, Date, sep = "_")) %>% 
+    unique() %>% 
+    mutate(Mois = month(Date),
+           Jour = day(Date))
+
+# Ajout des saison
+# La définition des saisons est basée sur les saisons climatiques et correspond à:
+# - Printemps = mars, avril, mai
+# - Été = juin, juillet, août
+# - Automne = septembre, octobre, novembre
+# - Hiver = décembre, janvier, février
+recent_long$Saison <- case_when( 
+    recent_long$Mois %in% c(6,7,8) ~ "Summer",
+    recent_long$Mois %in% c(9,10,11) ~ "Fall",
+    recent_long$Mois %in% c(1,2,12) ~ "Winter",
+    recent_long$Mois %in% c(3,4,5) ~ "Spring"
+)
+
+# Ajout des colonnes manquantes à partir de la table dictionnaire
+
+recent_long_nettoye <- recent_long %>% 
+  left_join(table_dictionnaire, by = "Station") %>% 
+  select(-Core) # supprimer colonne superflue
+
+#write_csv2(recent_long_nettoye, "donnees/Sorties_calculateur/Tableau_sorties_long.csv")
+write_csv2(recent_long_nettoye, "donnees/Compilation_saisonniere/donnees_saisonnieres.csv")
+```
+
+

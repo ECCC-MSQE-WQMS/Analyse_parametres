@@ -1,0 +1,4 @@
+"0","# Importation de la table dictionnaire"
+"0","table_dictionnaire <- read.csv2(""donnees/Dictionnaire_bassin.csv"")"
+"0",""
+"0",""

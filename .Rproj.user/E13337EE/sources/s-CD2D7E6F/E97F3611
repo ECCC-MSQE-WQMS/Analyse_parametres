@@ -1,0 +1,28 @@
+{
+    "id": "E97F3611",
+    "path": "Q:/CESI/CGAR-IQE/CGAR-IQE_2021-2022/Analyse paramètres/01-Lecture_donnees.Rmd",
+    "project_path": "01-Lecture_donnees.Rmd",
+    "type": "r_markdown",
+    "hash": "2052922129",
+    "contents": "",
+    "dirty": false,
+    "created": 1668439659113.0,
+    "source_on_save": false,
+    "relative_order": 3,
+    "properties": {
+        "chunk_output_type": "inline",
+        "source_window_id": "",
+        "Source": "Source",
+        "last_setup_crc32": "CD2D7E6Fa1dd5b79",
+        "cursorPosition": "165,0",
+        "scrollLine": "144"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1668528464,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1668528469182,
+    "read_only": false,
+    "read_only_alternatives": []
+}

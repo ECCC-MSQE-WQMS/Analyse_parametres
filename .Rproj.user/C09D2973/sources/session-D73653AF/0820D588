@@ -1,0 +1,28 @@
+{
+    "id": "0820D588",
+    "path": "~/Documents/rrr/Analyse paramètres/Tableaux_saisonniersv2.Rmd",
+    "project_path": "Tableaux_saisonniersv2.Rmd",
+    "type": "r_markdown",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1668529310628.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "chunk_output_type": "inline",
+        "source_window_id": "",
+        "Source": "Source",
+        "last_setup_crc32": "",
+        "cursorPosition": "24,18",
+        "scrollLine": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1668543243,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1668543243749,
+    "read_only": false,
+    "read_only_alternatives": []
+}
