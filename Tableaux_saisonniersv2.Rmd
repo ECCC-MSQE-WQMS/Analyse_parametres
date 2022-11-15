@@ -43,10 +43,8 @@ Les données sont extraites directement des fichiers de sorties du Calculateur e
 ## Importation des données récentes
 
 ```{r}
-
+# Lecture des données
 donnees_saisonnieres <- read.csv2("donnees/Compilation_saisonniere/donnees_saisonnieres.csv")
-
- #donnees_saisonnieres <- donnees_saisonnieres[,-1]
 
 ```
 
