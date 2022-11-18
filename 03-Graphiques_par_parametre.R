@@ -37,6 +37,7 @@ library(writexl)
 # Importation des données
 
 tableau_donnees <- read.csv2("resultats/Tableau_parametres_long.csv", fileEncoding = "UTF-8")
+liste_annees <- unique(tableau_donnees$Annee)
 
 
 
@@ -50,7 +51,7 @@ tableau_donnees_parametre <- tableau_donnees %>%
 
 # Créer liste des paramètres
 tableau_donnees_parametre <- arrange(tableau_donnees_parametre, tableau_donnees_parametre$Parametre)
-liste_parametres <- unique(tableau_donnees_partenaire$Parametre)
+liste_parametres <- unique(tableau_donnees_parametre$Parametre)
   
   
   liste_graphiques <- list()
@@ -80,7 +81,7 @@ liste_parametres <- unique(tableau_donnees_partenaire$Parametre)
 
     print(le_graphique)
   }
-  graphiques_combines <- marrangeGrob(grobs = liste_graphiques, nrow = 2, ncol = 2, top=quote("Fréquences annuelles d'échantillonnage par paramètre - Qc (2017-2019)"))
+  graphiques_combines <- marrangeGrob(grobs = liste_graphiques, nrow = 2, ncol = 2, top=quote(paste("Fréquences annuelles d'échantillonnage par paramètre - Qc (", min(liste_annees), "-", max(liste_annees), ")", sep = "")))
   ggsave(paste("figures/Repartition_Parametres_Frequence", ".pdf", sep = ""), graphiques_combines)
 
   
@@ -93,6 +94,7 @@ liste_parametres <- unique(tableau_donnees_partenaire$Parametre)
   
   # Créer liste des paramètres
   tableau_saisons_parametres <- arrange(tableau_saisons_parametres, tableau_saisons_parametres$Parametre)
+  tableau_saisons_parametres$Saison <- factor(tableau_saisons_parametres$Saison, levels = c("Winter", "Spring", "Summer", "Fall"))
 
   
   liste_graphiques_saisons <- list()
@@ -122,7 +124,7 @@ liste_parametres <- unique(tableau_donnees_partenaire$Parametre)
     
     print(le_graphique)
   }
-  graphiques_combines <- marrangeGrob(grobs = liste_graphiques_saisons, nrow = 2, ncol = 2, top=quote("Fréquences saisonnières d'échantillonnage par paramètre - Qc (2017-2019)"))
+  graphiques_combines <- marrangeGrob(grobs = liste_graphiques_saisons, nrow = 2, ncol = 4, top=quote(paste("Fréquences saisonnières d'échantillonnage par paramètre - Qc (", min(liste_annees), "-", max(liste_annees), ")", sep = "")))
   ggsave(paste("figures/Repartition_Parametres_Saisons", ".pdf", sep = ""), graphiques_combines)
   
   
