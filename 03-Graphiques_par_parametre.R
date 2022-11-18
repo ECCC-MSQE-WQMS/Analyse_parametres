@@ -43,7 +43,6 @@ liste_annees <- unique(tableau_donnees$Annee)
 
 ## Construction des graphiques - fréquences annuelles
 
-
 tableau_donnees_parametre <- tableau_donnees %>%
   group_by(Station, Annee, Parametre) %>%
   summarise(nSamples = n_distinct(Date)) %>%
@@ -128,18 +127,6 @@ liste_parametres <- unique(tableau_donnees_parametre$Parametre)
   ggsave(paste("figures/Repartition_Parametres_Saisons", ".pdf", sep = ""), graphiques_combines)
   
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   # Construction du tableau
   
   
@@ -155,14 +142,6 @@ liste_parametres <- unique(tableau_donnees_parametre$Parametre)
   liste_parametres <- unique(tableau_saisons_parametres$Parametre)
   
   
-#tableau_saisons_parametres <- as.data.frame(tableau_saisons_parametres)
-#tableau_saisons_parametres <- arrange(tableau_saisons_parametres, Station) # Tri par station
-#tableau_saisons_parametres_large <- as.data.frame(tableau_saisons_parametres) %>% 
-#  group_by(Station, Annee) %>% 
-#  summarise(NEchantillons = n_distinct(Parametre)) %>% 
-#  pivot_wider(names_from = Annee, values_from = NEchantillons, values_fill = 0) #%>% 
-#
-#tableau_saisons_parametres_large <- as.data.frame(tableau_saisons_parametres_large)
 ## Exportation d'une version Excel du tableau de résultats
   
   write_xlsx(tableau_saisons_parametres, 
